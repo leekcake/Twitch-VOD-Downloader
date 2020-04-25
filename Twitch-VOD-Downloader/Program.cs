@@ -17,7 +17,7 @@ namespace Twitch_VOD_Downloader
                 maxDownload = int.Parse(maxDownloadLine);
             }
 
-            Console.WriteLine("Enter max amount of chunks in memory, no input will default to 15");
+            Console.WriteLine("Enter max amount of chunks in memory, no input will default to 30");
             var maxChunkInMemoryLine = Console.ReadLine();
             int maxChunkInMemory = 30;
             if (maxChunkInMemoryLine != "")
