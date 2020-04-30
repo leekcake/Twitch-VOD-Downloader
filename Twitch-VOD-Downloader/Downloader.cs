@@ -113,7 +113,17 @@ namespace Twitch_VOD_Downloader
         public async Task DownloadChunk(int chunkNum)
         {
             var client = new WebClient();
-            var data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
+            byte[] data;
+            try
+            {
+                data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
+            }
+            catch
+            {
+                await Task.Delay(10000);
+                await DownloadChunk(chunkNum);
+                return;
+            }
             var chunk = new Chunk();
             chunk.chunkNum = chunkNum;
             chunk.data = data;
@@ -169,6 +179,7 @@ namespace Twitch_VOD_Downloader
                 if (data != null)
                 {
                     await ffmpeg.StandardInput.BaseStream.WriteAsync(data.data);
+                    await ffmpeg.StandardInput.BaseStream.FlushAsync();
                 }
                 else
                 {
