@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Twitch-VOD-Downloader", "Twitch-VOD-Downloader.csproj", "{6DDDC6EA-E11F-47DD-844E-A0DDB682511B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Twitch-VOD-Downloader", "Twitch-VOD-Downloader.csproj", "{6DDDC6EA-E11F-47DD-844E-A0DDB682511B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\Core\Core.csproj", "{D061D9E3-0342-490A-B54B-0AB6E2AF8674}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{6DDDC6EA-E11F-47DD-844E-A0DDB682511B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DDDC6EA-E11F-47DD-844E-A0DDB682511B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DDDC6EA-E11F-47DD-844E-A0DDB682511B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D061D9E3-0342-490A-B54B-0AB6E2AF8674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D061D9E3-0342-490A-B54B-0AB6E2AF8674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D061D9E3-0342-490A-B54B-0AB6E2AF8674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D061D9E3-0342-490A-B54B-0AB6E2AF8674}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
