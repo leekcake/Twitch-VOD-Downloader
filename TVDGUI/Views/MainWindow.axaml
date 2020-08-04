@@ -1,0 +1,32 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TVDGUI.ViewModels;assembly=TVDGUI"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="TVDGUI.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Twitch VOD Downloader">
+    
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+	<StackPanel Orientation="Vertical">
+	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+		    <TextBlock Margin="5,2" Text="Max download count" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		    <TextBox x:Name="MaxDownloadTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="15" ></TextBox>
+        </StackPanel>
+
+	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+		    <TextBlock Margin="5,2" Text="Max chunk in memory" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		    <TextBox x:Name="MaxChunkTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="30" ></TextBox>
+	    </StackPanel>
+
+	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+		    <TextBlock Margin="5,2" Text="Download to" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+		    <TextBox x:Name="PathTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="" ></TextBox>
+			<Button x:Name="FindPathButton" Content="찾아보기"></Button>
+	    </StackPanel>
+    </StackPanel>
+</Window>
