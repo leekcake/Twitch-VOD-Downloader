@@ -6,4 +6,8 @@
     <RootNamespace>Twitch_VOD_Downloader</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
 </Project>
