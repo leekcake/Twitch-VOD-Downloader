@@ -125,21 +125,31 @@ namespace Twitch_VOD_Downloader
             downloaderEnd = true;
         }
 
-        public async Task DownloadChunk(int chunkNum)
+        public async Task DownloadChunk(int chunkNum, bool muted = false)
         {
             byte[] data;
             try
             {
                 var client = NewClient;
-                data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
+                if(muted)
+                {
+                    data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}-muted.ts");
+                }
+                else
+                {
+                    data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
+                }
                 client.Dispose();
             }
             catch(Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                await Task.Delay(10000);
-                await DownloadChunk(chunkNum);
+                if(muted) //Not muted, It is blocking with too much connection? delay
+                {
+                    await Task.Delay(10000);
+                }
+                await DownloadChunk(chunkNum, !muted);
                 return;
             }
             var chunk = new Chunk();
