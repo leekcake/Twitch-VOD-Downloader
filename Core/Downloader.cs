@@ -16,7 +16,7 @@ namespace Twitch_VOD_Downloader
             public byte[] data;
         }
 
-        public readonly string header, path, ffmpegArg;
+        public readonly string header, path, ffmpegArg, proxy;
 
         public int maxDownload = 15;
         public int maxChunkInMemory = 30;
@@ -35,6 +35,13 @@ namespace Twitch_VOD_Downloader
             get
             {
                 var client = new WebClient();
+
+                if(proxy != null)
+                {
+                    WebProxy wp = new WebProxy(proxy);
+                    client.Proxy = wp;
+                }
+
                 client.Headers.Add("Referer", "https://www.twitch.tv/");
                 client.Headers.Add("Origin", "https://www.twitch.tv/");
                 client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
@@ -64,11 +71,12 @@ namespace Twitch_VOD_Downloader
             }
         }
 
-        public Downloader(string header, string path, string ffmpegArg)
+        public Downloader(string header, string path, string ffmpegArg, string proxy = null)
         {
             this.header = header;
             this.path = path;
             this.ffmpegArg = ffmpegArg;
+            this.proxy = proxy;
         }
 
         public void Start()

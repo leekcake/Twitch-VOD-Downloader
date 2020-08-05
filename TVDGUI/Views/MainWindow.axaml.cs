@@ -49,6 +49,7 @@ namespace TVDGUI.Views
 
         public ObservableCollection<VODData> VODDatas = new ObservableCollection<VODData>();
         private string ffmpegArg;
+        private string proxy;
 
         public MainWindow()
         {
@@ -106,6 +107,12 @@ namespace TVDGUI.Views
             else
             {
                 ffmpegArg = "-c:v copy";
+            }
+
+            proxy = null;
+            if (File.Exists("proxy.txt"))
+            {
+                proxy = File.ReadAllText("proxy.txt").Trim();
             }
 
             Closing += MainWindow_Closing;
