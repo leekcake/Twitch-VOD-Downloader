@@ -30,7 +30,17 @@ namespace Twitch_VOD_Downloader
         private bool uploaderEnd = false;
 
         private string lastFFmpegResult = "";
-        private WebClient client;
+        private WebClient NewClient
+        {
+            get
+            {
+                var client = new WebClient();
+                client.Headers.Add("Referer", "https://www.twitch.tv/");
+                client.Headers.Add("Origin", "https://www.twitch.tv/");
+                client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
+                return client;
+            }
+        }
 
         public int ChunkCount { get; private set; } = 0;
 
@@ -59,11 +69,6 @@ namespace Twitch_VOD_Downloader
             this.header = header;
             this.path = path;
             this.ffmpegArg = ffmpegArg;
-
-            client = new WebClient();
-            client.Headers.Add("Referer", "https://www.twitch.tv/");
-            client.Headers.Add("Origin", "https://www.twitch.tv/");
-            client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
         }
 
         public void Start()
@@ -80,7 +85,9 @@ namespace Twitch_VOD_Downloader
 
         public async Task DownloadThreadCmd()
         {
+            var client = NewClient;
             var playlistRaw = await client.DownloadStringTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/index-dvr.m3u8");
+            client.Dispose();
             var playlist = playlistRaw.Split("\n");
             var chunkInx = new List<int>();
             foreach (var data in playlist)
@@ -123,7 +130,9 @@ namespace Twitch_VOD_Downloader
             byte[] data;
             try
             {
+                var client = NewClient;
                 data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
+                client.Dispose();
             }
             catch(Exception ex)
             {
