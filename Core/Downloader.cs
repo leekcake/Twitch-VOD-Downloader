@@ -30,15 +30,18 @@ namespace Twitch_VOD_Downloader
         private bool uploaderEnd = false;
 
         private string lastFFmpegResult = "";
-        private int chunkCount = 0;
-        private int downloadedChunk = 0;
-        private int pushedChunk = 0;
+
+        public int ChunkCount { get; private set; } = 0;
+
+        public int DownloadedChunk { get; private set; } = 0;
+
+        public int PushedChunk { get; private set; } = 0;
 
         public string StatusText
         {
             get
             {
-                return $"D {downloadedChunk}/{chunkCount}, P {pushedChunk}/{chunkCount} # {lastFFmpegResult}";
+                return $"D {DownloadedChunk}/{ChunkCount}, P {PushedChunk}/{ChunkCount} # {lastFFmpegResult}";
             }
         }
 
@@ -82,7 +85,7 @@ namespace Twitch_VOD_Downloader
                     chunkInx.Add(int.Parse(data.Replace(".ts", "")));
                 }
             }
-            chunkCount = chunkInx.Count;
+            ChunkCount = chunkInx.Count;
 
             var tasks = new List<Task>();
 
@@ -118,8 +121,10 @@ namespace Twitch_VOD_Downloader
             {
                 data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
             }
-            catch
+            catch(Exception ex)
             {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
                 await Task.Delay(10000);
                 await DownloadChunk(chunkNum);
                 return;
@@ -130,7 +135,7 @@ namespace Twitch_VOD_Downloader
             lock (chunks)
             {
                 chunks.Add(chunk);
-                downloadedChunk += 1;
+                DownloadedChunk += 1;
             }
         }
 
@@ -161,7 +166,7 @@ namespace Twitch_VOD_Downloader
                         if (chunk.chunkNum == currentChunk)
                         {
                             data = chunk;
-                            pushedChunk += 1;
+                            PushedChunk += 1;
                         }
                     }
 

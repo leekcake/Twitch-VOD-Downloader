@@ -3,7 +3,9 @@
         xmlns:vm="clr-namespace:TVDGUI.ViewModels;assembly=TVDGUI"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" 
+		d:DesignWidth="800" d:DesignHeight="450"
+		Width="800" Height="450"
         x:Class="TVDGUI.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
         Title="Twitch VOD Downloader">
@@ -11,22 +13,52 @@
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
+	<DockPanel>
+		<StackPanel DockPanel.Dock="Top" Orientation="Vertical">
+			<StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<TextBlock Margin="5,2" Text="Max download count" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<TextBox x:Name="MaxDownloadTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="15" ></TextBox>
+			</StackPanel>
 
-	<StackPanel Orientation="Vertical">
-	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
-		    <TextBlock Margin="5,2" Text="Max download count" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		    <TextBox x:Name="MaxDownloadTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="15" ></TextBox>
-        </StackPanel>
+			<StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<TextBlock Margin="5,2" Text="Max chunk in memory" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<TextBox x:Name="MaxChunkTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="30" ></TextBox>
+			</StackPanel>
 
-	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
-		    <TextBlock Margin="5,2" Text="Max chunk in memory" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		    <TextBox x:Name="MaxChunkTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="30" ></TextBox>
-	    </StackPanel>
+			<StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<TextBlock Margin="5,2" Text="Download to" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<TextBox x:Name="PathTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="" ></TextBox>
+				<Button Margin="0,2" x:Name="FindPathButton" Content="Find"></Button>
+			</StackPanel>
 
-	    <StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
-		    <TextBlock Margin="5,2" Text="Download to" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-		    <TextBox x:Name="PathTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="" ></TextBox>
-			<Button x:Name="FindPathButton" Content="찾아보기"></Button>
-	    </StackPanel>
-    </StackPanel>
+			<StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<TextBlock x:Name="fetchListCountTextBlock" Margin="5,2" Text="0 streamers will queried. (Check fetchList.txt)" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				<Button x:Name="fetchListReloadButton" Margin="0,2" Content="Reload"></Button>
+			</StackPanel>
+
+			<StackPanel VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<TextBox x:Name="QueryIdTextBox" Margin="5,2" MinWidth="50" VerticalAlignment="Stretch" Text="" ></TextBox>
+				<Button x:Name="QueryIdButton" Margin="5,2" Content="Query Id"></Button>
+				<Button x:Name="QueryListButton" Margin="0,2" Content="Query List"></Button>
+				<TextBlock x:Name="StatusTextBlock" Text="Idle" Margin="5,2" ></TextBlock>
+			</StackPanel>
+
+			<Button x:Name="DownloadButton" Margin="0,2" Content="Download"></Button>
+
+			<ProgressBar Margin="0,5" x:Name="AllDownloadProgressBar"></ProgressBar>
+			<ProgressBar x:Name="CurDownloadProgressBar"></ProgressBar>
+			<TextBlock x:Name="DownloadStatusTextBlock" Text="Idle"></TextBlock>
+		</StackPanel>
+		<ScrollViewer DockPanel.Dock="Bottom">
+			<ItemsControl x:Name="VODList">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<CheckBox Margin="4"
+								  IsChecked="{Binding DownloadIt}"
+								  Content="{Binding Summary}"/>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</ScrollViewer>
+	</DockPanel>
 </Window>
