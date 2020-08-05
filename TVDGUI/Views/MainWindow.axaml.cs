@@ -196,7 +196,7 @@ namespace TVDGUI.Views
                     Directory.CreateDirectory(root);
                 }
 
-                var downTo = Path.Combine(root, $"Fin_{data.StreamerId}_" + Regex.Replace(data.BroadcastDate, "[^0-9.]", "") + "-TVD.mp4");
+                var downTo = Path.Combine(root, $"Fin_{data.StreamerId}_" + Regex.Replace(data.BroadcastDate, "[^0-9.]", "") + $"-TVD-{data.VODHeader}.mp4");
 
                 var downloader = new Downloader(data.VODHeader, downTo, ffmpegArg);
                 downloader.maxDownload = maxDownload;
