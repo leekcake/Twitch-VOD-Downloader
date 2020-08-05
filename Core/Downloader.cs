@@ -86,7 +86,17 @@ namespace Twitch_VOD_Downloader
         public async Task DownloadThreadCmd()
         {
             var client = NewClient;
-            var playlistRaw = await client.DownloadStringTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/index-dvr.m3u8");
+            string playlistRaw;
+            try
+            {
+                playlistRaw = await client.DownloadStringTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/index-dvr.m3u8");
+            }
+            catch(Exception ex)
+            {
+                chunks.Clear();
+                downloaderEnd = true;
+                return;
+            }
             client.Dispose();
             var playlist = playlistRaw.Split("\n");
             var chunkInx = new List<int>();
