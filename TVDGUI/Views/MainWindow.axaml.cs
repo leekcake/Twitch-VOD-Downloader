@@ -58,8 +58,18 @@ namespace TVDGUI.Views
             this.AttachDevTools();
 #endif
 
+            proxy = null;
+            if (File.Exists("proxy.txt"))
+            {
+                proxy = File.ReadAllText("proxy.txt").Trim();
+            }
+
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("--headless");
+            if (proxy != null)
+            {
+                chromeOptions.AddArguments($"--proxy-server={proxy}");
+            }
             crawler = new ChromeDriver(chromeOptions);
 
             MaxDownloadTextBox = this.FindControl<TextBox>("MaxDownloadTextBox");
@@ -107,12 +117,6 @@ namespace TVDGUI.Views
             else
             {
                 ffmpegArg = "-c:v copy";
-            }
-
-            proxy = null;
-            if (File.Exists("proxy.txt"))
-            {
-                proxy = File.ReadAllText("proxy.txt").Trim();
             }
 
             Closing += MainWindow_Closing;
@@ -205,7 +209,7 @@ namespace TVDGUI.Views
 
                 var downTo = Path.Combine(root, $"Fin_{data.StreamerId}_" + Regex.Replace(data.BroadcastDate, "[^0-9.]", "") + $"-TVD-{data.VODHeader}.mp4");
 
-                var downloader = new Downloader(data.VODHeader, downTo, ffmpegArg);
+                var downloader = new Downloader(data.VODHeader, downTo, ffmpegArg, proxy);
                 downloader.maxDownload = maxDownload;
                 downloader.maxChunkInMemory = maxChunk;
                 downloader.Start();
