@@ -2,6 +2,8 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Utils;
 using Avalonia.Markup.Xaml;
+using Avalonia.Native;
+using Avalonia.Threading;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -89,8 +91,6 @@ namespace TVDGUI.Views
             AllDownloadProgressBar = this.FindControl<ProgressBar>("AllDownloadProgressBar");
             CurDownloadProgressBar = this.FindControl<ProgressBar>("CurDownloadProgressBar");
             DownloadStatusTextBlock = this.FindControl<TextBlock>("DownloadStatusTextBlock");
-            
-
             /*
             MaxDownloadTextBox.GetObservable(TextBox.TextProperty).Subscribe(text =>
             {
@@ -135,32 +135,58 @@ namespace TVDGUI.Views
             }
 
             SetInteractive(false);
-            await DownloadQueueAll(PathTextBox.Text);
-        }
-
-        public async Task DownloadQueueAll(string path)
-        {
+            var path = PathTextBox.Text;
             var list = new List<VODData>(VODDatas.Count);
-            foreach(var item in VODDatas)
+            foreach (var item in VODDatas)
             {
-                if(item.DownloadIt)
+                if (item.DownloadIt)
                 {
                     list.Add(item);
                 }
             }
+            new Task(async () =>
+            {
+                try
+                {
+                    await DownloadQueueAll(path, list);
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    Debug.WriteLine(ex.StackTrace);
+                }
+            }).Start();
+        }
+
+        public async Task DownloadQueueAll(string path, List<VODData> list)
+        {
+            Debug.WriteLine("DownloadQueueAll Start");
 
             var maxDownload = int.Parse(MaxDownloadTextBox.Text);
             var maxChunk = int.Parse(MaxChunkTextBox.Text);
 
-            AllDownloadProgressBar.Maximum = list.Count;
-            CurDownloadProgressBar.Maximum = 1;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                AllDownloadProgressBar.Maximum = list.Count;
+                CurDownloadProgressBar.Maximum = 1;
+            });
 
             for(int i = 0; i < list.Count; i++)
             {
                 var data = list[i];
-                var status = new Action<string>((message) =>
+                var status = new Action<string>(async (message) =>
                 {
-                    DownloadStatusTextBlock.Text = $"다운로드: {message} [{data.Summary}]";
+                    if(Dispatcher.UIThread.CheckAccess())
+                    {
+                        DownloadStatusTextBlock.Text = $"다운로드: {message} [{data.Summary}]";
+                    }
+                    else
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            DownloadStatusTextBlock.Text = $"다운로드: {message} [{data.Summary}]";
+                        });
+                    }
                 });
                 status("시작됨");
 
@@ -179,22 +205,25 @@ namespace TVDGUI.Views
 
                 while (!downloader.IsFinished)
                 {
-                    status($"Delayed chunk count: {downloader.DownloadedChunk - downloader.PushedChunk}");
-                    if (downloader.ChunkCount == 0)
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        CurDownloadProgressBar.Value = 0;
-                    }
-                    else
-                    {
-                        CurDownloadProgressBar.Value = downloader.PushedChunk / (double) downloader.ChunkCount;
-                    }
-                    AllDownloadProgressBar.Value = i + CurDownloadProgressBar.Value;
-                    await Task.Delay(10);
+                        status($"Delayed chunk count: {downloader.DownloadedChunk - downloader.PushedChunk}");
+                        if (downloader.ChunkCount == 0)
+                        {
+                            CurDownloadProgressBar.Value = 0;
+                        }
+                        else
+                        {
+                            CurDownloadProgressBar.Value = downloader.PushedChunk / (double)downloader.ChunkCount;
+                        }
+                        AllDownloadProgressBar.Value = i + CurDownloadProgressBar.Value;
+                    });
+                    await Task.Delay(100);
                 }
 
                 status("완료, 다음 작업 확인중");
-                AllDownloadProgressBar.Value = i + 1;
             }
+            Debug.WriteLine("DownloadQueueAll End");
         }
 
         private async void QueryListButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
