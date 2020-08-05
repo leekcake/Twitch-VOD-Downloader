@@ -30,6 +30,7 @@ namespace Twitch_VOD_Downloader
         private bool uploaderEnd = false;
 
         private string lastFFmpegResult = "";
+        private WebClient client;
 
         public int ChunkCount { get; private set; } = 0;
 
@@ -58,6 +59,8 @@ namespace Twitch_VOD_Downloader
             this.header = header;
             this.path = path;
             this.ffmpegArg = ffmpegArg;
+
+            client = new WebClient();
         }
 
         public void Start()
@@ -115,7 +118,6 @@ namespace Twitch_VOD_Downloader
 
         public async Task DownloadChunk(int chunkNum)
         {
-            var client = new WebClient();
             byte[] data;
             try
             {
