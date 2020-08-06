@@ -49,7 +49,7 @@ namespace TVDGUI.Views
 
         public ObservableCollection<VODData> VODDatas = new ObservableCollection<VODData>();
         private string ffmpegArg;
-        private string proxy;
+        private string[] proxy;
 
         public MainWindow()
         {
@@ -61,14 +61,14 @@ namespace TVDGUI.Views
             proxy = null;
             if (File.Exists("proxy.txt"))
             {
-                proxy = File.ReadAllText("proxy.txt").Trim();
+                proxy = File.ReadAllText("proxy.txt").Trim().Split("\r\n");
             }
 
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("--headless");
             if (proxy != null)
             {
-                chromeOptions.AddArguments($"--proxy-server={proxy}");
+                chromeOptions.AddArguments($"--proxy-server={proxy[0]}");
             }
             crawler = new ChromeDriver(chromeOptions);
 
@@ -142,6 +142,7 @@ namespace TVDGUI.Views
         {
             if( !Directory.Exists(PathTextBox.Text) )
             {
+                //TODO: Notify
                 return;
             }
 
@@ -239,13 +240,18 @@ namespace TVDGUI.Views
 
         private async void QueryListButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            QueryListButton.IsEnabled = false;
-            foreach(var id in fetchList)
+            if (!Directory.Exists(PathTextBox.Text))
+            {
+                //TODO: Notify
+                return;
+            }
+            SetInteractive(false);
+            foreach (var id in fetchList)
             {
                 await ParseId(id);
             }
             StatusTextBlock.Text = "Crawl list complete";
-            QueryListButton.IsEnabled = true;
+            SetInteractive(true);
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -255,9 +261,14 @@ namespace TVDGUI.Views
 
         private async void QueryIdButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            QueryIdButton.IsEnabled = false;
+            if (!Directory.Exists(PathTextBox.Text))
+            {
+                //TODO: Notify
+                return;
+            }
+            SetInteractive(false);
             await ParseId(QueryIdTextBox.Text);
-            QueryIdButton.IsEnabled = true;
+            SetInteractive(true);
         }
 
         private async Task ParseId(string id)
@@ -299,7 +310,9 @@ namespace TVDGUI.Views
                 data.StreamerId = id;
                 data.BroadcastTitle = alt;
                 data.ThumbnailURL = src;
-                data.DownloadIt = true;
+                var root = Path.Combine(PathTextBox.Text, data.StreamerId);
+                var fn = Path.Combine(root, data.OutputFilename);
+                data.DownloadIt = !File.Exists(fn);
 
                 VODDatas.Add(data);
             }

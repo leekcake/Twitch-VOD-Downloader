@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace TVDGUI.Models
 {
@@ -17,6 +18,14 @@ namespace TVDGUI.Models
             {
                 var split = ThumbnailURL.Replace("//", "/").Split('/');
                 return split[split.Length - 3];
+            }
+        }
+
+        public string OutputFilename
+        {
+            get
+            {
+                return $"Fin_{StreamerId}_" + Regex.Replace(BroadcastDate, "[^0-9.]", "") + $"-TVD-{VODHeader}.mp4";
             }
         }
 

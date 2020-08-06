@@ -16,7 +16,10 @@ namespace Twitch_VOD_Downloader
             public byte[] data;
         }
 
-        public readonly string header, path, ffmpegArg, proxy;
+        public readonly string header, path, ffmpegArg;
+        public readonly string[] proxy;
+        private bool[] proxyAlive;
+        private int[] proxyRecheck;
 
         public int maxDownload = 15;
         public int maxChunkInMemory = 30;
@@ -30,23 +33,61 @@ namespace Twitch_VOD_Downloader
         private bool uploaderEnd = false;
 
         private string lastFFmpegResult = "";
-        private WebClient NewClient
+        private int currentProxyInx = 0;
+        private async Task<WebClient> NewClient()
         {
-            get
+            var client = new WebClient();
+
+            if (proxy != null)
             {
-                var client = new WebClient();
-
-                if(proxy != null)
+                int inx;
+                while (true)
                 {
-                    WebProxy wp = new WebProxy(proxy);
-                    client.Proxy = wp;
-                }
+                    inx = currentProxyInx++;
+                    if (currentProxyInx >= proxy.Length)
+                    {
+                        currentProxyInx = 0;
+                    }
+                    var to = proxy[inx];
+                    if (to != "direct")
+                    {
+                        WebProxy wp = new WebProxy(to);
+                        client.Proxy = wp;
+                    } else
+                    {
+                        client.Proxy = null;
+                    }
 
-                client.Headers.Add("Referer", "https://www.twitch.tv/");
-                client.Headers.Add("Origin", "https://www.twitch.tv/");
-                client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
-                return client;
+                    if (proxyRecheck[inx] <= 0)
+                    {
+                        try
+                        {
+                            //Fast service provider for alive check.
+                            await client.DownloadStringTaskAsync("http://1.1.1.1");
+                            proxyAlive[inx] = true;
+                        }
+                        catch
+                        {
+                            proxyAlive[inx] = false;
+                        }
+                        proxyRecheck[inx] = 100;
+                    }
+                    else
+                    {
+                        proxyRecheck[inx] -= 1;
+                    }
+
+                    if(proxyAlive[inx])
+                    {
+                        break;
+                    }
+                }
             }
+
+            client.Headers.Add("Referer", "https://www.twitch.tv/");
+            client.Headers.Add("Origin", "https://www.twitch.tv/");
+            client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0");
+            return client;
         }
 
         public int ChunkCount { get; private set; } = 0;
@@ -71,7 +112,7 @@ namespace Twitch_VOD_Downloader
             }
         }
 
-        public Downloader(string header, string path, string ffmpegArg, string proxy = null)
+        public Downloader(string header, string path, string ffmpegArg, string[] proxy = null)
         {
             this.header = header;
             this.path = path;
@@ -93,13 +134,13 @@ namespace Twitch_VOD_Downloader
 
         public async Task DownloadThreadCmd()
         {
-            var client = NewClient;
+            var client = await NewClient();
             string playlistRaw;
             try
             {
                 playlistRaw = await client.DownloadStringTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/index-dvr.m3u8");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 chunks.Clear();
                 downloaderEnd = true;
@@ -131,7 +172,7 @@ namespace Twitch_VOD_Downloader
                 {
                     break;
                 }
-                if(chunkInx.Count == 0)
+                if (chunkInx.Count == 0)
                 {
                     continue;
                 }
@@ -143,33 +184,34 @@ namespace Twitch_VOD_Downloader
             downloaderEnd = true;
         }
 
-        public async Task DownloadChunk(int chunkNum, bool muted = false)
+        public async Task DownloadChunk(int chunkNum, int retryCount = 0)
         {
             byte[] data;
+            var client = await NewClient();
             try
             {
-                var client = NewClient;
-                if(muted)
-                {
-                    data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}-muted.ts");
-                }
-                else
+                try
                 {
                     data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}.ts");
                 }
-                client.Dispose();
+                catch
+                {
+                    data = await client.DownloadDataTaskAsync($"https://vod-secure.twitch.tv/{header}/chunked/{chunkNum}-muted.ts");
+                }
             }
-            catch(Exception ex)
+            catch (WebException ex)
             {
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
-                if(muted) //Not muted, It is blocking with too much connection? delay
+                await Task.Delay(1000 * retryCount);
+                _ = Task.Run(async () =>
                 {
-                    await Task.Delay(10000);
-                }
-                await DownloadChunk(chunkNum, !muted);
+                    await DownloadChunk(chunkNum, retryCount++);
+                });
+                client.Dispose();
                 return;
             }
+            client.Dispose();
             var chunk = new Chunk();
             chunk.chunkNum = chunkNum;
             chunk.data = data;
