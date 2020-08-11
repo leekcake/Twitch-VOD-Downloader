@@ -66,7 +66,7 @@ namespace TVDGUI.Views
 
             var chromeOptions = new ChromeOptions();
             chromeOptions.AddArguments("--headless");
-            if (proxy != null)
+            if (proxy != null && proxy[0] != "direct")
             {
                 chromeOptions.AddArguments($"--proxy-server={proxy[0]}");
             }

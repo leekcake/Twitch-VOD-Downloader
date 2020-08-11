@@ -118,6 +118,8 @@ namespace Twitch_VOD_Downloader
             this.path = path;
             this.ffmpegArg = ffmpegArg;
             this.proxy = proxy;
+            this.proxyAlive = new bool[proxy.Length];
+            this.proxyRecheck = new int[proxy.Length];
         }
 
         public void Start()
@@ -204,6 +206,10 @@ namespace Twitch_VOD_Downloader
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
                 await Task.Delay(1000 * retryCount);
+                if(retryCount > 5)
+                {
+                    retryCount = 5;
+                }
                 _ = Task.Run(async () =>
                 {
                     await DownloadChunk(chunkNum, retryCount++);
@@ -271,7 +277,7 @@ namespace Twitch_VOD_Downloader
                 }
                 else
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(1);
                 }
             }
             await ffmpeg.StandardInput.BaseStream.FlushAsync();
